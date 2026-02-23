@@ -1,5 +1,3 @@
----
-
 # 🔐 Distributed Locking Techniques Using Redis
 
 **Senior Software Engineer – System Design & Concurrency Guide**
