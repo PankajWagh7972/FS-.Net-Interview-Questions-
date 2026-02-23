@@ -925,5 +925,424 @@ If you want, I can also prepare:
 ✅ **Azure Cloud Coding Scenarios**
 
 ---
+---
+
+# 🧵 Multithreading + Async Programming – Coding Interview Problems
+
+**For Senior .NET Developers**
+
+---
+
+# Table of Contents
+
+1. Thread vs Task vs Async
+2. Parallel Programming
+3. Synchronization & Thread Safety
+4. Deadlocks & Race Conditions
+5. Producer–Consumer Problems
+6. High-Performance Async APIs
+7. Real Enterprise Scenarios
+
+---
+
+# 1️⃣ Thread vs Task vs Async (Concept + Coding)
+
+---
+
+## 1. Difference between Thread, Task, and async/await
+
+| Feature     | Thread | Task        | async/await |
+| ----------- | ------ | ----------- | ----------- |
+| Abstraction | Low    | High        | Highest     |
+| Resource    | Heavy  | Lightweight | Efficient   |
+| Pooling     | No     | Yes         | Yes         |
+| Scalability | Poor   | Good        | Excellent   |
+
+### Best Practice:
+
+Use **Task + async/await**, not raw threads.
+
+---
+
+## 2. Create Multi-threaded Program Using Task
+
+### Problem:
+
+Run 3 background jobs in parallel.
+
+```csharp
+public static async Task RunTasksAsync()
+{
+    Task t1 = Task.Run(() => Print("Task1"));
+    Task t2 = Task.Run(() => Print("Task2"));
+    Task t3 = Task.Run(() => Print("Task3"));
+
+    await Task.WhenAll(t1, t2, t3);
+}
+
+static void Print(string name)
+{
+    Console.WriteLine($"{name} running on Thread {Thread.CurrentThread.ManagedThreadId}");
+}
+```
+
+---
+
+# 2️⃣ Parallel Programming
+
+---
+
+## 3. Parallel.For vs foreach
+
+### Problem:
+
+Process 1 million records efficiently.
+
+```csharp
+Parallel.For(0, 1_000_000, i =>
+{
+    Process(i);
+});
+```
+
+### Why Parallel.For?
+
+* Uses thread pool
+* Efficient CPU utilization
+* Automatic load balancing
+
+---
+
+## 4. Parallel LINQ (PLINQ)
+
+```csharp
+var result = numbers
+    .AsParallel()
+    .Where(n => n % 2 == 0)
+    .ToList();
+```
+
+---
+
+# 3️⃣ Synchronization & Thread Safety
+
+---
+
+## 5. Race Condition Example
+
+```csharp
+int counter = 0;
+
+Parallel.For(0, 10000, i =>
+{
+    counter++;   // ❌ Not thread safe
+});
+```
+
+### Fix using lock:
+
+```csharp
+int counter = 0;
+object locker = new();
+
+Parallel.For(0, 10000, i =>
+{
+    lock (locker)
+    {
+        counter++;
+    }
+});
+```
+
+---
+
+## 6. Thread-Safe Counter using Interlocked
+
+```csharp
+int counter = 0;
+
+Parallel.For(0, 10000, i =>
+{
+    Interlocked.Increment(ref counter);
+});
+```
+
+---
+
+## 7. SemaphoreSlim Example (Concurrency Control)
+
+### Problem:
+
+Allow only **3 concurrent requests**
+
+```csharp
+SemaphoreSlim semaphore = new(3);
+
+async Task ProcessAsync()
+{
+    await semaphore.WaitAsync();
+    try
+    {
+        await Task.Delay(2000);
+    }
+    finally
+    {
+        semaphore.Release();
+    }
+}
+```
+
+---
+
+# 4️⃣ Deadlocks & Race Conditions
+
+---
+
+## 8. Deadlock Scenario
+
+```csharp
+lock(obj1)
+{
+    lock(obj2) { }
+}
+
+lock(obj2)
+{
+    lock(obj1) { }
+}
+```
+
+### Solution:
+
+**Always lock in same order.**
+
+---
+
+## 9. Deadlock in async/await
+
+### Problem:
+
+```csharp
+var data = GetDataAsync().Result; // ❌
+```
+
+### Correct:
+
+```csharp
+var data = await GetDataAsync();  // ✅
+```
+
+---
+
+# 5️⃣ Producer–Consumer Problem (Very Important)
+
+---
+
+## 10. Producer Consumer using BlockingCollection
+
+```csharp
+BlockingCollection<int> queue = new(5);
+
+Task producer = Task.Run(() =>
+{
+    for (int i = 1; i <= 10; i++)
+    {
+        queue.Add(i);
+        Console.WriteLine($"Produced {i}");
+    }
+    queue.CompleteAdding();
+});
+
+Task consumer = Task.Run(() =>
+{
+    foreach (var item in queue.GetConsumingEnumerable())
+    {
+        Console.WriteLine($"Consumed {item}");
+    }
+});
+
+await Task.WhenAll(producer, consumer);
+```
+
+---
+
+# 6️⃣ High Performance Async APIs
+
+---
+
+## 11. Async API Call Pattern (Real World)
+
+```csharp
+public async Task<List<User>> GetUsersAsync()
+{
+    var users = await _context.Users
+                              .AsNoTracking()
+                              .ToListAsync();
+    return users;
+}
+```
+
+### Best Practices:
+
+* Always use async DB calls
+* Avoid blocking threads
+* Use `AsNoTracking()` for read-only
+
+---
+
+## 12. Parallel API Aggregator (VERY COMMON)
+
+### Problem:
+
+Call **multiple microservices in parallel**
+
+```csharp
+public async Task<ApiResult> GetDashboardAsync()
+{
+    var ordersTask = GetOrdersAsync();
+    var usersTask = GetUsersAsync();
+    var paymentTask = GetPaymentsAsync();
+
+    await Task.WhenAll(ordersTask, usersTask, paymentTask);
+
+    return new ApiResult
+    {
+        Orders = ordersTask.Result,
+        Users = usersTask.Result,
+        Payments = paymentTask.Result
+    };
+}
+```
+
+---
+
+# 7️⃣ Real Enterprise Multithreading Scenarios
+
+---
+
+## 13. Background Worker using Hosted Service
+
+```csharp
+public class Worker : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            await ProcessQueue();
+            await Task.Delay(5000, token);
+        }
+    }
+}
+```
+
+---
+
+## 14. Thread-Safe In-Memory Cache
+
+```csharp
+private static readonly ConcurrentDictionary<int, string> cache = new();
+
+public string GetData(int id)
+{
+    return cache.GetOrAdd(id, key => LoadFromDb(key));
+}
+```
+
+---
+
+# 8️⃣ Common Interview Tricky Questions
+
+---
+
+## 15. Task.WhenAll vs Task.WhenAny
+
+| WhenAll             | WhenAny          |
+| ------------------- | ---------------- |
+| Waits for all tasks | Waits for first  |
+| Batch processing    | Fastest response |
+
+---
+
+## 16. async void vs async Task
+
+| async void          | async Task        |
+| ------------------- | ----------------- |
+| Fire & forget       | Awaitable         |
+| Error not catchable | Exception handled |
+
+**Never use async void except event handlers.**
+
+---
+
+# 9️⃣ Advanced Coding Challenges (Senior Level)
+
+---
+
+## 17. Rate Limited API Executor
+
+```csharp
+SemaphoreSlim limiter = new(5);
+
+async Task CallApi()
+{
+    await limiter.WaitAsync();
+    try
+    {
+        await Task.Delay(1000);
+    }
+    finally
+    {
+        limiter.Release();
+    }
+}
+```
+
+---
+
+## 18. Parallel File Processing
+
+```csharp
+Parallel.ForEach(files, file =>
+{
+    ProcessFile(file);
+});
+```
+
+---
+
+# 🔥 Must Practice Before Interview
+
+| Topic          | Priority |
+| -------------- | -------- |
+| async / await  | ⭐⭐⭐⭐⭐    |
+| Task.WhenAll   | ⭐⭐⭐⭐⭐    |
+| Parallel loops | ⭐⭐⭐⭐     |
+| Deadlocks      | ⭐⭐⭐⭐⭐    |
+| Thread safety  | ⭐⭐⭐⭐⭐    |
+
+---
+
+# 🏆 Interview Tips (VERY IMPORTANT)
+
+* Prefer **Task + async/await**
+* Avoid raw threads
+* Avoid blocking calls
+* Use **parallelism carefully**
+* Focus on **scalability + performance**
+
+---
+
+# 🚀 Next Level Prep Additions (Optional)
+
+If you want, I can also provide:
+
+✅ **Advanced System Design Coding Problems**
+✅ **Distributed Locking Techniques (Redis)**
+✅ **Event-driven async architecture patterns**
+✅ **High-performance microservices design**
+
+---
+
 
 
