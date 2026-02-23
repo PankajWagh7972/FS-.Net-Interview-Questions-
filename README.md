@@ -507,4 +507,423 @@ Using **Planning Poker + Story Points** based on:
 * Angular enterprise architecture
 
 ---
+---
+
+# 💻 Real Coding Interview Problems with Solutions
+
+**For Senior .NET Full Stack Developers**
+
+---
+
+# Table of Contents
+
+1. C# Logical Problems
+2. Data Structures & Algorithms (C#)
+3. .NET Core API Coding Problems
+4. SQL Query Problems
+5. Angular / TypeScript Coding Problems
+6. Real-world Enterprise Coding Scenarios
+
+---
+
+# 1️⃣ C# Logical Problems
+
+---
+
+## 1. Reverse a String Without Using Built-in Functions
+
+### Problem:
+
+Reverse a string **without using built-in reverse methods**.
+
+### Solution:
+
+```csharp
+public static string ReverseString(string input)
+{
+    char[] arr = input.ToCharArray();
+    int left = 0, right = arr.Length - 1;
+
+    while (left < right)
+    {
+        (arr[left], arr[right]) = (arr[right], arr[left]);
+        left++;
+        right--;
+    }
+
+    return new string(arr);
+}
+```
+
+### Time Complexity:
+
+**O(n)**
+
+---
+
+## 2. Find Second Largest Number in an Array
+
+### Solution:
+
+```csharp
+public static int SecondLargest(int[] arr)
+{
+    int first = int.MinValue, second = int.MinValue;
+
+    foreach (int num in arr)
+    {
+        if (num > first)
+        {
+            second = first;
+            first = num;
+        }
+        else if (num > second && num != first)
+        {
+            second = num;
+        }
+    }
+
+    return second;
+}
+```
+
+---
+
+## 3. Check if String is Palindrome
+
+```csharp
+public static bool IsPalindrome(string input)
+{
+    int left = 0, right = input.Length - 1;
+
+    while (left < right)
+    {
+        if (input[left] != input[right])
+            return false;
+
+        left++;
+        right--;
+    }
+
+    return true;
+}
+```
+
+---
+
+# 2️⃣ Data Structures & Algorithms (C#)
+
+---
+
+## 4. Find First Non-Repeating Character
+
+```csharp
+public static char FirstUniqueChar(string input)
+{
+    var map = new Dictionary<char, int>();
+
+    foreach (char c in input)
+        map[c] = map.ContainsKey(c) ? map[c] + 1 : 1;
+
+    foreach (char c in input)
+        if (map[c] == 1) return c;
+
+    return '_';
+}
+```
+
+---
+
+## 5. Two Sum Problem (Most Asked)
+
+### Problem:
+
+Find indices of two numbers that add up to target.
+
+```csharp
+public static int[] TwoSum(int[] nums, int target)
+{
+    var map = new Dictionary<int, int>();
+
+    for (int i = 0; i < nums.Length; i++)
+    {
+        int diff = target - nums[i];
+
+        if (map.ContainsKey(diff))
+            return new[] { map[diff], i };
+
+        map[nums[i]] = i;
+    }
+
+    return Array.Empty<int>();
+}
+```
+
+**Time Complexity:** O(n)
+
+---
+
+## 6. Binary Search Implementation
+
+```csharp
+public static int BinarySearch(int[] arr, int target)
+{
+    int low = 0, high = arr.Length - 1;
+
+    while (low <= high)
+    {
+        int mid = low + (high - low) / 2;
+
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) low = mid + 1;
+        else high = mid - 1;
+    }
+
+    return -1;
+}
+```
+
+---
+
+# 3️⃣ .NET Core API Coding Problems
+
+---
+
+## 7. Create REST API for CRUD Operations (Entity + Controller)
+
+### Model:
+
+```csharp
+public class Employee
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Salary { get; set; }
+}
+```
+
+### Controller:
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class EmployeesController : ControllerBase
+{
+    private readonly AppDbContext _context;
+
+    public EmployeesController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        return Ok(await _context.Employees.ToListAsync());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post(Employee emp)
+    {
+        _context.Employees.Add(emp);
+        await _context.SaveChangesAsync();
+        return Ok(emp);
+    }
+}
+```
+
+---
+
+## 8. Global Exception Middleware
+
+```csharp
+public class ExceptionMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public ExceptionMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task Invoke(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync(ex.Message);
+        }
+    }
+}
+```
+
+---
+
+# 4️⃣ SQL Query Problems (Very Important)
+
+---
+
+## 9. Find Second Highest Salary
+
+```sql
+SELECT MAX(Salary)
+FROM Employees
+WHERE Salary < (SELECT MAX(Salary) FROM Employees);
+```
+
+---
+
+## 10. Remove Duplicate Records
+
+```sql
+WITH CTE AS (
+   SELECT *, ROW_NUMBER() OVER(PARTITION BY Email ORDER BY Id) rn
+   FROM Users
+)
+DELETE FROM CTE WHERE rn > 1;
+```
+
+---
+
+## 11. Find Employees Without Managers
+
+```sql
+SELECT *
+FROM Employees e
+WHERE NOT EXISTS (
+   SELECT 1 FROM Employees m WHERE e.ManagerId = m.Id
+);
+```
+
+---
+
+# 5️⃣ Angular / TypeScript Coding Problems
+
+---
+
+## 12. Debounce Search Input (VERY COMMON)
+
+```typescript
+this.searchControl.valueChanges
+  .pipe(debounceTime(300), distinctUntilChanged())
+  .subscribe(value => {
+    this.search(value);
+  });
+```
+
+---
+
+## 13. Route Guard Example
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  
+  canActivate(): boolean {
+    return !!localStorage.getItem('token');
+  }
+}
+```
+
+---
+
+## 14. HTTP Interceptor (JWT Token)
+
+```typescript
+intercept(req: HttpRequest<any>, next: HttpHandler) {
+  const token = localStorage.getItem('token');
+
+  if (token) {
+    req = req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  return next.handle(req);
+}
+```
+
+---
+
+# 6️⃣ Real Enterprise-Level Coding Scenarios
+
+---
+
+## 15. Rate Limiting Middleware (.NET Core)
+
+```csharp
+public class RateLimitMiddleware
+{
+    private static Dictionary<string, DateTime> cache = new();
+
+    public async Task Invoke(HttpContext context, RequestDelegate next)
+    {
+        var ip = context.Connection.RemoteIpAddress.ToString();
+
+        if (cache.ContainsKey(ip) && DateTime.Now < cache[ip])
+        {
+            context.Response.StatusCode = 429;
+            await context.Response.WriteAsync("Too many requests");
+            return;
+        }
+
+        cache[ip] = DateTime.Now.AddSeconds(5);
+        await next(context);
+    }
+}
+```
+
+---
+
+## 16. Caching in .NET Core
+
+```csharp
+public async Task<List<Product>> GetProducts()
+{
+    return await _cache.GetOrCreateAsync("products", async entry =>
+    {
+        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+        return await _context.Products.ToListAsync();
+    });
+}
+```
+
+---
+
+# ⭐ Must Practice Before Interview
+
+| Category      | Priority |
+| ------------- | -------- |
+| C# Logic      | ⭐⭐⭐⭐     |
+| REST API      | ⭐⭐⭐⭐⭐    |
+| SQL Queries   | ⭐⭐⭐⭐⭐    |
+| Angular       | ⭐⭐⭐⭐     |
+| System Design | ⭐⭐⭐⭐⭐    |
+
+---
+
+# 🏆 How To Use This Repo
+
+* Daily coding practice
+* Interview revision
+* Teaching juniors
+* System design prep
+
+---
+
+# 🔥 Next Level Additions (Optional)
+
+If you want, I can also prepare:
+
+✅ **Advanced System Design Coding Problems**
+✅ **Multithreading + Async Coding Problems**
+✅ **Microservices Design + Implementation**
+✅ **Azure Cloud Coding Scenarios**
+
+---
+
 
